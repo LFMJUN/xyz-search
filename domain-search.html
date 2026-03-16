@@ -719,24 +719,26 @@
     const patterns = [
       // 三连
       { name: '三连AAA', regex: /(\d)\1{2}/, rare: true },
-      // AABB
+      // AABB (如 1122)
       { name: '含AABB', regex: /(\d)\1(\d)\2/, rare: true },
-      // ABAB
+      // ABAB (如 1212)
       { name: '含ABAB', regex: /(\d)(\d)\1\2/, rare: true },
-      // ABBA
+      // ABBA (如 1221)
       { name: '含ABBA', regex: /(\d)(\d)\2\1/, rare: true },
-      // AAB
-      { name: '含AAB', regex: /(\d)\1[^\1]/, rare: false },
-      // ABA
-      { name: '含ABA', regex: /(\d)[^\1]\1/, rare: false },
-      // ABB
-      { name: '含ABB', regex: /(\d)[^\1]\1{1,2}/, rare: false },
-      // AAAB
-      { name: '含AAAB', regex: /(\d)\1{2}[^\1]/, rare: false },
-      // AABA
-      { name: '含AABA', regex: /(\d)\1{1,2}[^\1]\d/, rare: false },
-      // ABAA
-      { name: '含ABAA', regex: /(\d)[^\1]\1{2}/, rare: false },
+      // AAB (如 110) - 2个相同+1个不同
+      { name: '含AAB', regex: /(\d)\1(?!\d)/, rare: false },  // 结尾的AA
+      // AAB 中间
+      { name: '含AAB', regex: /(\d)\1\d(?!\1)/, rare: false },
+      // ABA (如 101) - 开头结尾相同
+      { name: '含ABA', regex: /^(\d).\1$/, rare: false },
+      // ABB (如 100) - 不同+2个相同
+      { name: '含ABB', regex: /(?!\d)(\d)\1{2}/, rare: false },
+      // AAAB (如 1110)
+      { name: '含AAAB', regex: /(\d)\1{2}(?!\d)/, rare: false },
+      // AABA (如 1101)
+      { name: '含AABA', regex: /(\d)\1(?!\d)(\d)/, rare: false },
+      // ABAA (如 1011)
+      { name: '含ABAA', regex: /(\d)(?!\1)\d\1/, rare: false },
       // ABCCBA 回文
       { name: '回文ABCCBA', regex: /^(\d)(\d)(\d)\3\2\1$/, rare: true },
       // ABCABC

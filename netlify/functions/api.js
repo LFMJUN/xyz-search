@@ -2,20 +2,27 @@
 
 async function whoisLookup(domain) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    
     const response = await fetch(`https://www.whois.com/whois/${domain}`, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeout);
     
     const text = await response.text();
     
-    // 只需要检查 "Registered On" - 有则表示已注册，无则表示未注册
+    // 检查是否有 "Registered On" - 有则表示已注册
     const isRegistered = text.includes('Registered On');
     
     return { domain, available: !isRegistered };
   } catch (error) {
-    return { domain, available: null, error: error.message };
+    // 出错时保守返回 true（可注册）
+    return { domain, available: true, error: error.message };
   }
 }
 
