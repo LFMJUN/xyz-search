@@ -117,7 +117,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     <div class="search-card">
       <div class="input-group">
         <label class="input-label"><span class="icon">#</span>输入靓号号码</label>
-        <textarea id="domainInput" placeholder="支持批量输入，用逗号、空格或换行分隔"></textarea>
+        <textarea id="domainInput" placeholder="支持批量输入，用逗号，空格或换行分隔"></textarea>
         <div class="input-hint">💡 输入格式：支持 <code>逗号</code>、<code>空格</code>、<code>换行</code> 分隔</div>
         <div class="search-actions">
           <button class="btn btn-primary" id="searchBtn" onclick="searchDomains()"><span>🔎</span>批量查询</button>
@@ -148,19 +148,18 @@ const HTML_PAGE = `<!DOCTYPE html>
   <script>
     const API_BASE = 'https://xyz-search.lfmjun.workers.dev';
     const patterns = [
-      { name: '三连AAA', regex: /(\d)\1{2}/, rare: true },
-      { name: '含AABB', regex: /(\d)\1(\d)\2/, rare: true },
-      { name: '含ABAB', regex: /(\d)(\d)\1\2/, rare: true },
-      { name: '含ABBA', regex: /(\d)(\d)\2\1/, rare: true },
-      { name: '含AAB', regex: /(\d)\1(?!\d)/, rare: false },
-      { name: '含AAB', regex: /(\d)\1\d(?!\1)/, rare: false },
-      { name: '含ABA', regex: /^(\d).\1$/, rare: false },
-      { name: '含ABB', regex: /(?!\d)(\d)\1{2}/, rare: false },
-      { name: '含AAAB', regex: /(\d)\1{2}(?!\d)/, rare: false },
-      { name: '含AABA', regex: /(\d)\1(?!\d)(\d)/, rare: false },
-      { name: '含ABAA', regex: /(\d)(?!\d)\d\1/, rare: false },
-      { name: '回文ABCCBA', regex: /^(\d)(\d)(\d)\3\2\1$/, rare: true },
-      { name: 'ABCABC', regex: /^(\d)(\d)(\d)\1\2\3$/, rare: true },
+      { name: '三连AAA', regex: /(\\d)\\1{2}/, rare: true },
+      { name: '含AABB', regex: /(\\d)\\1(\\d)\\2/, rare: true },
+      { name: '含ABAB', regex: /(\\d)(\\d)\\1\\2/, rare: true },
+      { name: '含ABBA', regex: /(\\d)(\\d)\\2\\1/, rare: true },
+      { name: '含AAB', regex: /(\\d)\\1/, rare: false },
+      { name: '含ABA', regex: /(\\d).\\1/, rare: false },
+      { name: '含ABB', regex: /(\\d)\\1\\1/, rare: false },
+      { name: '含AAAB', regex: /(\\d)\\1{2}\\d/, rare: false },
+      { name: '含AABA', regex: /(\\d)\\1\\d\\d/, rare: false },
+      { name: '含ABAA', regex: /\\d(\\d)\\1\\1/, rare: false },
+      { name: '回文ABCCBA', regex: /(\\d)(\\d)(\\d)\\3\\2\\1/, rare: true },
+      { name: 'ABCABC', regex: /(\\d)(\\d)(\\d)\\1\\2\\3/, rare: true },
     ];
     function detectPatterns(num) {
       const detected = [];
@@ -178,7 +177,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         return data.available;
       } catch (error) { console.error('查询失败:', error); return true; }
     }
-    function parseInput(input) { return [...new Set(input.split(/[,\s\n]+/).map(s => s.trim().replace(/\\.xyz$/i, '')).filter(s => /^\\d{6}$/.test(s)))]; }
+    function parseInput(input) { return [...new Set(input.split(/[,\\s\\n]+/).map(s => s.trim().replace(/\\.xyz$/i, '')).filter(s => /^\\d{6}$/.test(s)))]; }
     async function searchDomains() {
       const input = document.getElementById('domainInput').value;
       const numbers = parseInput(input);
@@ -216,7 +215,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       const tags = Object.entries(patternCount).sort((a, b) => b[1] - a[1]).map(([name, count]) => '<div class="filter-tag" onclick="filterByPattern(\\'' + name + '\\')">' + name + '<span class="count">' + count + '</span></div>').join('');
       filterTags.innerHTML = '<div class="filter-tag active" onclick="filterByPattern(\\'\\')">全部<span class="count">' + results.length + '</span></div><div class="filter-tag" onclick="filterByStatus(\\'available\\')">✅可注册<span class="count">' + results.filter(r => r.available).length + '</span></div><div class="filter-tag" onclick="filterByStatus(\\'registered\\')">❌已注册<span class="count">' + results.filter(r => !r.available).length + '</span></div>' + tags;
       document.getElementById('filterCount').textContent = results.length;
-      const downloadBtn = document.getElementById('downloadBtn');
       const availableCount = results.filter(r => r.available).length;
       if (availableCount > 0) { document.getElementById('statsBar').innerHTML += '<button class="btn btn-download" id="downloadBtn" onclick="downloadAvailable()" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:10px 20px;font-size:0.9rem;border-radius:12px;border:none;cursor:pointer;">📥下载可注册域名 (' + availableCount + ')</button>'; }
     }
@@ -283,7 +281,6 @@ const HTML_PAGE = `<!DOCTYPE html>
 async function handleRequest(request) {
   const url = new URL(request.url);
   
-  // 如果访问根路径，返回 HTML 页面
   if (url.pathname === '/' || url.pathname === '/index.html') {
     return new Response(HTML_PAGE, {
       headers: { 'Content-Type': 'text/html;charset=UTF-8' }
