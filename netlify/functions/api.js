@@ -1,9 +1,7 @@
 // Netlify Functions - 域名查询 API
 
-// 使用 whois.com API 方式查询
 async function whoisLookup(domain) {
   try {
-    // 方法1: 通过 whois.com 查询页面
     const response = await fetch(`https://www.whois.com/whois/${domain}`, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -12,31 +10,28 @@ async function whoisLookup(domain) {
     
     const text = await response.text();
     
-    // whois.com 页面中包含 "is available!" 表示未注册
-    // 包含 "Domain Name:" 表示已注册
-    const isAvailable = text.toLowerCase().includes('is available!') && 
-                       !text.toLowerCase().includes('domain name:');
+    // 检查页面中是否有 "Registered On" - 有则表示已注册
+    const isRegistered = text.includes('Registered On');
+    // 检查是否显示可用 - "is available!" 且没有注册信息
+    const isAvailable = text.includes('is available!') && !text.includes('Registered On');
     
-    return { domain, available: isAvailable };
+    return { domain, available: !isRegistered };
   } catch (error) {
     return { domain, available: null, error: error.message };
   }
 }
 
 exports.handler = async function(event, context) {
-  // 设置 CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
 
-  // 处理 OPTIONS 预检请求
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
 
-  // 只允许 POST 请求
   if (event.httpMethod !== 'POST') {
     return { 
       statusCode: 405, 
@@ -56,7 +51,6 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // 自动添加 .xyz 后缀
     let fullDomain = domain;
     if (!domain.includes('.')) {
       fullDomain = domain + '.xyz';
