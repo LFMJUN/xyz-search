@@ -2,6 +2,10 @@
 
 6位数字 XYZ 域名靓号批量搜索工具
 
+## 🚀 在线演示
+
+访问演示站点：https://xyz-search.netlify.app/
+
 ## 🚀 部署到 Netlify
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/LFMJUN/xyz-search&site_name=xyz-search)
