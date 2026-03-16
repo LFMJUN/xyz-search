@@ -30,7 +30,7 @@ app.post('/api/check-domain', async (req, res) => {
 
   try {
     const whoisResult = await new Promise((resolve, reject) => {
-      exec(`whois ${domain}`, { timeout: 8000 }, (err, stdout, stderr) => {
+      exec(`whois ${domain}`, { timeout: 5000 }, (err, stdout, stderr) => {
         if (err) {
           resolve(stderr || err.message);
         } else {
@@ -84,11 +84,13 @@ app.post('/api/check-domain', async (req, res) => {
       raw: whoisResult.substring(0, 500)
     });
   } catch (error) {
+    // 超时或连接错误，返回null表示未知
     res.json({
       domain,
       available: null,
       error: error.message
     });
+    return;
   }
 });
 

@@ -834,7 +834,7 @@
         });
         // 每次查询后等待 1 秒，避免被 WHOIS 服务限流
         if (i < numbers.length - 1) {
-          await new Promise(r => setTimeout(r, 1000));
+          await new Promise(r => setTimeout(r, 300));
         }
       }
 
