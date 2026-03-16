@@ -19,6 +19,8 @@ async function whoisLookup(domain) {
   }
 }
 
+const API_BASE = 'https://xyz-search.lfmjun.workers.dev';
+
 const HTML_PAGE = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -146,7 +148,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     </div>
   </div>
   <script>
-    const API_BASE = 'https://xyz-search.lfmjun.workers.dev';
+    const API_URL = '` + API_BASE + `/api';
     const patterns = [
       { name: '三连AAA', regex: /(\\d)\\1{2}/, rare: true },
       { name: '含AABB', regex: /(\\d)\\1(\\d)\\2/, rare: true },
@@ -172,7 +174,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     async function checkDomainStatus(domain) {
       if (!domain.includes('.')) domain = domain + '.xyz';
       try {
-        const response = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain }) });
+        const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain }) });
         const data = await response.json();
         return data.available;
       } catch (error) { console.error('查询失败:', error); return true; }
@@ -281,23 +283,25 @@ const HTML_PAGE = `<!DOCTYPE html>
 async function handleRequest(request) {
   const url = new URL(request.url);
   
+  // 如果访问根路径，返回 HTML 页面
   if (url.pathname === '/' || url.pathname === '/index.html') {
     return new Response(HTML_PAGE, {
       headers: { 'Content-Type': 'text/html;charset=UTF-8' }
     });
   }
   
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  // /api 路径处理 WHOIS 查询
+  if (url.pathname === '/api' && request.method === 'POST') {
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
 
-  if (request.method === 'POST') {
     try {
       const { domain } = await request.json();
       if (!domain) {
@@ -319,6 +323,7 @@ async function handleRequest(request) {
     }
   }
 
+  // 其他路径返回 HTML
   return new Response(HTML_PAGE, {
     headers: { 'Content-Type': 'text/html;charset=UTF-8' }
   });
