@@ -10,10 +10,8 @@ async function whoisLookup(domain) {
     
     const text = await response.text();
     
-    // 检查页面中是否有 "Registered On" - 有则表示已注册
+    // 只需要检查 "Registered On" - 有则表示已注册，无则表示未注册
     const isRegistered = text.includes('Registered On');
-    // 检查是否显示可用 - "is available!" 且没有注册信息
-    const isAvailable = text.includes('is available!') && !text.includes('Registered On');
     
     return { domain, available: !isRegistered };
   } catch (error) {
