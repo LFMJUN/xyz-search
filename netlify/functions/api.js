@@ -1,21 +1,21 @@
 // Netlify Functions - 域名查询 API
 
-// 方案1: IANA WHOIS 查询
+// 使用 whois.com API 方式查询
 async function whoisLookup(domain) {
   try {
-    const response = await fetch(`https://whois.iana.org/${domain}`, {
+    // 方法1: 通过 whois.com 查询页面
+    const response = await fetch(`https://www.whois.com/whois/${domain}`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
     
     const text = await response.text();
     
-    // 如果返回的是"No match"或"NOT FOUND"表示未注册
-    // 如果返回的是域名信息表示已注册
-    const isAvailable = text.toLowerCase().includes('no match') || 
-                       text.toLowerCase().includes('not found') ||
-                       text.toLowerCase().includes('query status: no match');
+    // whois.com 页面中包含 "is available!" 表示未注册
+    // 包含 "Domain Name:" 表示已注册
+    const isAvailable = text.toLowerCase().includes('is available!') && 
+                       !text.toLowerCase().includes('domain name:');
     
     return { domain, available: isAvailable };
   } catch (error) {
