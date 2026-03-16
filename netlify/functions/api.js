@@ -1,35 +1,23 @@
-// Netlify Functions - RDAP 免费域名查询 API
+// Netlify Functions - 域名查询 API
 
-const RDAP_SERVERS = {
-  'xyz': 'https://rdap.verisign.com/domain/v1/',
-  'com': 'https://rdap.verisign.com/domain/v1/',
-  'net': 'https://rdap.verisign.com/domain/v1/',
-  'org': 'https://rdap.verisign.com/domain/v1/',
-  'info': 'https://rdap.verisign.com/domain/v1/',
-};
-
-async function rdapLookup(domain) {
-  const tld = domain.split('.').pop().toLowerCase();
-  const server = RDAP_SERVERS[tld] || RDAP_SERVERS['xyz'];
-  
+// 方案1: IANA WHOIS 查询
+async function whoisLookup(domain) {
   try {
-    const response = await fetch(`${server}${domain}`, {
+    const response = await fetch(`https://whois.iana.org/${domain}`, {
       headers: {
-        'User-Agent': 'RDAP-Client/1.0',
-        'Accept': 'application/json'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
     });
     
-    if (response.status === 404 || response.status === 400) {
-      return { domain, available: true };
-    }
+    const text = await response.text();
     
-    if (response.status === 200) {
-      return { domain, available: false };
-    }
+    // 如果返回的是"No match"或"NOT FOUND"表示未注册
+    // 如果返回的是域名信息表示已注册
+    const isAvailable = text.toLowerCase().includes('no match') || 
+                       text.toLowerCase().includes('not found') ||
+                       text.toLowerCase().includes('query status: no match');
     
-    return { domain, available: null, status: response.status };
-    
+    return { domain, available: isAvailable };
   } catch (error) {
     return { domain, available: null, error: error.message };
   }
@@ -74,7 +62,7 @@ exports.handler = async function(event, context) {
       fullDomain = domain + '.xyz';
     }
 
-    const result = await rdapLookup(fullDomain);
+    const result = await whoisLookup(fullDomain);
 
     return {
       statusCode: 200,
