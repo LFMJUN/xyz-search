@@ -2,23 +2,23 @@
 
 6位数字 XYZ 域名靓号批量搜索工具
 
-## 🚀 部署到 Cloudflare Workers
+## 🚀 本地运行
 
-1. 登录 https://dash.cloudflare.com
-2. 左侧 **Workers 和 Pages** → **创建应用程序**
-3. 选择 **部署 GitHub 仓库**
-4. 连接 GitHub，选择 `xyz-search` 仓库
-5. 部署后得到 Workers URL（如 `xyz-search.xxx.workers.dev`）
-6. 打开 `domain-search.html`，修改最顶部的 `API_BASE` 为你的 Workers URL
+```bash
+# 安装依赖
+npm install
 
-```javascript
-const API_BASE = 'https://xyz-search.xxx.workers.dev';
+# 启动服务
+node server.js
+
+# 访问
+http://localhost:8080
 ```
 
 ## 📖 功能特性
 
 - 🔍 批量查询 - 支持多个号码同时查询
-- 📊 规律筛选 - 按AAB、ABA、ABB、AAA等规律筛选
+- 📊 规律筛选 - 按AAB、ABA、ABB、AAA、顺子等规律筛选
 - 📥 下载导出 - 一键导出可注册域名
 - 💾 数据持久化 - 自动保存查询结果
 
