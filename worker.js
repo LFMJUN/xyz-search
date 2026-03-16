@@ -1,6 +1,7 @@
 // Cloudflare Workers - 域名查询 API + 前端页面
 
 const DEFAULT_TLD = 'xyz';
+const API_BASE = 'https://xyz-search.lfmjun.workers.dev';
 
 async function whoisLookup(domain) {
   try {
@@ -18,8 +19,6 @@ async function whoisLookup(domain) {
     return { domain, available: null, error: error.message };
   }
 }
-
-const API_BASE = 'https://xyz-search.lfmjun.workers.dev';
 
 const HTML_PAGE = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -149,37 +148,68 @@ const HTML_PAGE = `<!DOCTYPE html>
   </div>
   <script>
     const API_URL = '` + API_BASE + `/api';
-    const patterns = [
-      { name: '三连AAA', regex: /(\\d)\\1{2}/, rare: true },
-      { name: '含AABB', regex: /(\\d)\\1(\\d)\\2/, rare: true },
-      { name: '含ABAB', regex: /(\\d)(\\d)\\1\\2/, rare: true },
-      { name: '含ABBA', regex: /(\\d)(\\d)\\2\\1/, rare: true },
-      { name: '含AAB', regex: /(\\d)\\1/, rare: false },
-      { name: '含ABA', regex: /(\\d).\\1/, rare: false },
-      { name: '含ABB', regex: /(\\d)\\1\\1/, rare: false },
-      { name: '含AAAB', regex: /(\\d)\\1{2}\\d/, rare: false },
-      { name: '含AABA', regex: /(\\d)\\1\\d\\d/, rare: false },
-      { name: '含ABAA', regex: /\\d(\\d)\\1\\1/, rare: false },
-      { name: '回文ABCCBA', regex: /(\\d)(\\d)(\\d)\\3\\2\\1/, rare: true },
-      { name: 'ABCABC', regex: /(\\d)(\\d)(\\d)\\1\\2\\3/, rare: true },
-    ];
+    
+    // 规律检测
     function detectPatterns(num) {
       const detected = [];
       const uniqueDigits = [...new Set(num.split(''))].length;
-      if (uniqueDigits === 2) detected.push({ name: '两个数字组成', rare: false });
-      else if (uniqueDigits === 3) detected.push({ name: '三个数字组成', rare: false });
-      for (const p of patterns) { if (p.regex.test(num) && !detected.find(d => d.name === p.name)) detected.push({ name: p.name, rare: p.rare }); }
+      
+      // 顺子检测
+      let isAscending = true;
+      let isDescending = true;
+      for (let i = 0; i < num.length - 1; i++) {
+        if (parseInt(num[i+1]) !== parseInt(num[i]) + 1) isAscending = false;
+        if (parseInt(num[i+1]) !== parseInt(num[i]) - 1) isDescending = false;
+      }
+      if (isAscending) detected.push({ name: '顺子ABCDEF', rare: true });
+      if (isDescending) detected.push({ name: '倒序FEDCBA', rare: true });
+      
+      // 数字种类
+      if (uniqueDigits === 2) detected.push({ name: '两个数字', rare: false });
+      else if (uniqueDigits === 3) detected.push({ name: '三个数字', rare: false });
+      
+      // 三连
+      if (/(\\d)\\1{2}/.test(num)) detected.push({ name: '三连AAA', rare: true });
+      // AABB
+      if (/(\\d)\\1(\\d)\\2/.test(num)) detected.push({ name: 'AABB', rare: true });
+      // ABAB
+      if (/(\\d)(\\d)\\1\\2/.test(num)) detected.push({ name: 'ABAB', rare: true });
+      // ABBA
+      if (/(\\d)(\\d)\\2\\1/.test(num)) detected.push({ name: 'ABBA', rare: true });
+      // AAB
+      if (/(\\d)\\1/.test(num) && !/(\\d)\\1{2}/.test(num)) detected.push({ name: 'AAB', rare: false });
+      // ABA
+      if (/(\\d).\\1/.test(num)) detected.push({ name: 'ABA', rare: false });
+      // ABB
+      if (/\\d(\\d)\\1/.test(num) && !/(\\d)\\1{2}/.test(num)) detected.push({ name: 'ABB', rare: false });
+      // 回文
+      if (num === num.split('').reverse().join('')) detected.push({ name: '回文', rare: true });
+      // ABCABC
+      if (/^(\\d)(\\d)(\\d)\\1\\2\\3$/.test(num)) detected.push({ name: 'ABCABC', rare: true });
+      
       return detected;
     }
+    
     async function checkDomainStatus(domain) {
       if (!domain.includes('.')) domain = domain + '.xyz';
       try {
-        const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain }) });
+        const response = await fetch(API_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ domain }) 
+        });
         const data = await response.json();
         return data.available;
-      } catch (error) { console.error('查询失败:', error); return true; }
+      } catch (error) { 
+        console.error('查询失败:', error); 
+        return true; 
+      }
     }
-    function parseInput(input) { return [...new Set(input.split(/[,\\s\\n]+/).map(s => s.trim().replace(/\\.xyz$/i, '')).filter(s => /^\\d{6}$/.test(s)))]; }
+    
+    function parseInput(input) { 
+      return [...new Set(input.split(/[,\\s\\n]+/).map(s => s.trim().replace(/\\.xyz$/i, '')).filter(s => /^\\d{6}$/.test(s)))]; 
+    }
+    
     async function searchDomains() {
       const input = document.getElementById('domainInput').value;
       const numbers = parseInput(input);
@@ -193,7 +223,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         const isAvailable = await checkDomainStatus(num);
         const patternTags = detectPatterns(num);
         results.push({ number: num, domain: num + '.xyz', available: isAvailable, patterns: patternTags });
-        if (i < numbers.length - 1) await new Promise(r => setTimeout(r, 1000));
+        if (i < numbers.length - 1) await new Promise(r => setTimeout(r, 1200));
       }
       currentResults = results;
       const available = results.filter(r => r.available).length;
@@ -208,6 +238,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       searchBtn.disabled = false;
       searchBtn.innerHTML = '<span>🔎</span>批量查询';
     }
+    
     function updateFilters(results) {
       const filterTags = document.getElementById('filterTags');
       const filterSection = document.getElementById('filterSection');
@@ -220,10 +251,12 @@ const HTML_PAGE = `<!DOCTYPE html>
       const availableCount = results.filter(r => r.available).length;
       if (availableCount > 0) { document.getElementById('statsBar').innerHTML += '<button class="btn btn-download" id="downloadBtn" onclick="downloadAvailable()" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:10px 20px;font-size:0.9rem;border-radius:12px;border:none;cursor:pointer;">📥下载可注册域名 (' + availableCount + ')</button>'; }
     }
+    
     function filterByPattern(pattern) {
       document.querySelectorAll('.domain-card').forEach(card => { card.style.display = (!pattern || (card.dataset.patterns || '').includes(pattern)) ? '' : 'none'; });
       document.querySelectorAll('.filter-tag').forEach(tag => { tag.classList.remove('active'); if (tag.textContent.includes(pattern) || (!pattern && tag.textContent.includes('全部'))) tag.classList.add('active'); });
     }
+    
     function filterByStatus(status) {
       document.querySelectorAll('.domain-card').forEach(card => {
         const isAvailable = !card.classList.contains('registered');
@@ -234,12 +267,14 @@ const HTML_PAGE = `<!DOCTYPE html>
       });
       document.querySelectorAll('.filter-tag').forEach(tag => { tag.classList.remove('active'); if (tag.textContent.includes(status === 'available' ? '可注册' : status === 'registered' ? '已注册' : '全部')) tag.classList.add('active'); });
     }
+    
     function downloadAvailable() {
       const available = currentResults.filter(r => r.available).map(r => r.domain);
       if (available.length === 0) { alert('没有可注册的域名'); return; }
       const blob = new Blob([available.join('\\n')], { type: 'text/plain' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'available-domains.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
+    
     function renderResults(results) {
       const grid = document.getElementById('resultsGrid');
       const resultsSection = document.getElementById('resultsSection');
@@ -253,6 +288,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         return '<div class="domain-card ' + (r.available ? '' : 'registered') + '" data-patterns="' + patternStr + '" style="animation-delay:' + (i * 0.02) + 's"><div class="domain-number">' + r.number + '<span class="domain-suffix">.xyz</span></div><div class="domain-status ' + (r.available ? 'available' : 'registered') + '">' + (r.available ? '✓可注册' : '✗已注册') + '</div><div class="domain-tags">' + (tagsHtml || '<span class="domain-tag pattern">普通号码</span>') + '</div></div>';
       }).join('');
     }
+    
     function loadFromStorage() {
       const saved = localStorage.getItem('domainSearchResults');
       if (saved) {
@@ -271,6 +307,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         } catch (e) { console.error('恢复失败:', e); }
       }
     }
+    
     function saveToStorage(results) { localStorage.setItem('domainSearchResults', JSON.stringify(results)); }
     function clearInput() { document.getElementById('domainInput').value = ''; document.getElementById('statsBar').style.display = 'none'; document.getElementById('filterSection').style.display = 'none'; document.getElementById('resultsSection').style.display = 'none'; document.getElementById('emptyState').style.display = 'block'; localStorage.removeItem('domainSearchResults'); currentResults = []; }
     let currentResults = [];
@@ -283,14 +320,12 @@ const HTML_PAGE = `<!DOCTYPE html>
 async function handleRequest(request) {
   const url = new URL(request.url);
   
-  // 如果访问根路径，返回 HTML 页面
   if (url.pathname === '/' || url.pathname === '/index.html') {
     return new Response(HTML_PAGE, {
       headers: { 'Content-Type': 'text/html;charset=UTF-8' }
     });
   }
   
-  // /api 路径处理 WHOIS 查询
   if (url.pathname === '/api' && request.method === 'POST') {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -323,7 +358,6 @@ async function handleRequest(request) {
     }
   }
 
-  // 其他路径返回 HTML
   return new Response(HTML_PAGE, {
     headers: { 'Content-Type': 'text/html;charset=UTF-8' }
   });
