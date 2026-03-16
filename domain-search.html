@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6位数字XYZ域名靓号批量搜索</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --accent: #f59e0b;
+      --accent-light: #fbbf24;
+      --danger: #ef4444;
+      --danger-light: #fca5a5;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Animated background */
+    .bg-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.02) 0%, transparent 70%);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .header .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    /* Search Card */
+    .search-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      border: 1px solid var(--border);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-label {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-label .icon {
+      width: 20px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      resize: vertical;
+      transition: all 0.3s ease;
+      background: var(--bg-input);
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .input-hint {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-hint code {
+      background: var(--bg-input);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .search-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: var(--radius);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-download {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Filter Tags */
+    .filter-section {
+      margin-bottom: 24px;
+    }
+
+    .filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .filter-title {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-count {
+      background: var(--primary);
+      color: white;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-tag:hover {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.05);
+    }
+
+    .filter-tag.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filter-tag .count {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+
+    .filter-tag.active .count {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Results Grid */
+    .results-section {
+      margin-top: 32px;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .results-title {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .domain-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .domain-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: #22c55e;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .domain-card.registered::before {
+      background: var(--danger);
+      opacity: 1;
+    }
+
+    .domain-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .domain-card.registered {
+      opacity: 0.7;
+    }
+
+    .domain-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .domain-card.registered .domain-number {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .domain-suffix {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .domain-status {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .domain-status.available {
+      color: #22c55e;
+    }
+
+    .domain-status.registered {
+      color: var(--danger);
+    }
+
+    .domain-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .domain-tag {
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .domain-tag.pattern {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+    }
+
+    .domain-tag.rare {
+      background: rgba(245, 158, 11, 0.15);
+      color: #d97706;
+    }
+
+    .domain-tag.aaa {
+      background: rgba(245, 158, 11, 0.2);
+      color: #b45309;
+      font-weight: 600;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .stat-item .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .stat-item .dot.green { background: #22c55e; }
+    .stat-item .dot.red { background: var(--danger); }
+    .stat-item .dot.blue { background: var(--primary); }
+
+    .stat-item .value {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .stat-item .label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.75rem;
+      }
+
+      .search-card {
+        padding: 20px;
+      }
+
+      .results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+      }
+
+      .domain-card {
+        padding: 14px;
+      }
+
+      .domain-number {
+        font-size: 1.2rem;
+      }
+
+      .search-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .domain-card {
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .domain-card:nth-child(1) { animation-delay: 0.02s; }
+    .domain-card:nth-child(2) { animation-delay: 0.04s; }
+    .domain-card:nth-child(3) { animation-delay: 0.06s; }
+    .domain-card:nth-child(4) { animation-delay: 0.08s; }
+    .domain-card:nth-child(5) { animation-delay: 0.1s; }
+    .domain-card:nth-child(6) { animation-delay: 0.12s; }
+    .domain-card:nth-child(7) { animation-delay: 0.14s; }
+    .domain-card:nth-child(8) { animation-delay: 0.16s; }
+    .domain-card:nth-child(9) { animation-delay: 0.18s; }
+    .domain-card:nth-child(10) { animation-delay: 0.2s; }
+  </style>
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  
+  <div class="container">
+    <header class="header">
+      <h1>🔍 6位数字XYZ域名靓号批量搜索</h1>
+      <p class="subtitle">输入号码批量查询，一键查找未注册的优质域名</p>
+    </header>
+
+    <div class="search-card">
+      <div class="input-group">
+        <label class="input-label">
+          <span class="icon">#</span>
+          输入靓号号码
+        </label>
+        <textarea 
+          id="domainInput" 
+          placeholder="支持批量输入，用逗号、空格或换行分隔&#10;&#10;例如：&#10;123456&#10;888888, 666666&#10;111222&#10;334455"
+        ></textarea>
+        <div class="input-hint">
+          💡 输入格式：支持 <code>逗号</code>、<code>空格</code>、<code>换行</code> 分隔
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary" id="searchBtn" onclick="searchDomains()">
+            <span>🔎</span> 批量查询
+          </button>
+          <button class="btn btn-secondary" onclick="clearInput()">
+            <span>🗑️</span> 清空
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-bar" id="statsBar" style="display: none;">
+      <div class="stat-item">
+        <span class="dot green"></span>
+        <span class="value" id="availableCount">0</span>
+        <span class="label">可注册</span>
+      </div>
+      <div class="stat-item">
+        <span class="dot red"></span>
+        <span class="value" id="registeredCount">0</span>
+        <span class="label">已注册</span>
+      </div>
+      <div class="stat-item">
+        <span class="dot blue"></span>
+        <span class="value" id="totalCount">0</span>
+        <span class="label">总计</span>
+      </div>
+      <button class="btn btn-download" id="downloadBtn" onclick="downloadAvailable()" style="display: none;">
+        <span>📥</span> 下载可注册域名
+      </button>
+    </div>
+
+    <div class="filter-section" id="filterSection" style="display: none;">
+      <div class="filter-header">
+        <div class="filter-title">
+          <span>🏷️</span> 按规律筛选
+          <span class="filter-count" id="filterCount">0</span>
+        </div>
+      </div>
+      <div class="filter-tags" id="filterTags"></div>
+    </div>
+
+    <div class="results-section" id="resultsSection" style="display: none;">
+      <div class="results-header">
+        <div class="results-title">📋 查询结果</div>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+      <div class="icon">📭</div>
+      <h3>暂无查询结果</h3>
+      <p>在上方输入靓号号码，点击"批量查询"开始搜索</p>
+    </div>
+  </div>
+
+  <script>
+    // 从 localStorage 恢复结果
+    function loadFromStorage() {
+      const saved = localStorage.getItem('domainSearchResults');
+      if (saved) {
+        try {
+          const results = JSON.parse(saved);
+          if (results && results.length > 0) {
+            currentResults = results;
+            
+            // 恢复统计
+            const available = results.filter(r => r.available).length;
+            const registered = results.filter(r => !r.available).length;
+            document.getElementById('availableCount').textContent = available;
+            document.getElementById('registeredCount').textContent = registered;
+            document.getElementById('totalCount').textContent = results.length;
+            document.getElementById('statsBar').style.display = 'flex';
+
+            // 恢复筛选和结果
+            updateFilters(results);
+            renderResults(results);
+            
+            // 恢复输入
+            const input = results.map(r => r.number).join('\n');
+            document.getElementById('domainInput').value = input;
+          }
+        } catch (e) {
+          console.error('恢复失败:', e);
+        }
+      }
+    }
+
+    // 保存到 localStorage
+    function saveToStorage(results) {
+      localStorage.setItem('domainSearchResults', JSON.stringify(results));
+    }
+
+    // 页面加载时恢复
+    window.addEventListener('load', loadFromStorage);
+
+    // 数字规律检测
+    const patterns = [
+      // 三连
+      { name: '三连AAA', regex: /(\d)\1{2}/, rare: true },
+      // AABB
+      { name: '含AABB', regex: /(\d)\1(\d)\2/, rare: true },
+      // ABAB
+      { name: '含ABAB', regex: /(\d)(\d)\1\2/, rare: true },
+      // ABBA
+      { name: '含ABBA', regex: /(\d)(\d)\2\1/, rare: true },
+      // AAB
+      { name: '含AAB', regex: /(\d)\1[^\1]/, rare: false },
+      // ABA
+      { name: '含ABA', regex: /(\d)[^\1]\1/, rare: false },
+      // ABB
+      { name: '含ABB', regex: /(\d)[^\1]\1{1,2}/, rare: false },
+      // AAAB
+      { name: '含AAAB', regex: /(\d)\1{2}[^\1]/, rare: false },
+      // AABA
+      { name: '含AABA', regex: /(\d)\1{1,2}[^\1]\d/, rare: false },
+      // ABAA
+      { name: '含ABAA', regex: /(\d)[^\1]\1{2}/, rare: false },
+      // ABCCBA 回文
+      { name: '回文ABCCBA', regex: /^(\d)(\d)(\d)\3\2\1$/, rare: true },
+      // ABCABC
+      { name: 'ABCABC', regex: /^(\d)(\d)(\d)\1\2\3$/, rare: true },
+    ];
+
+    function detectPatterns(num) {
+      const detected = [];
+      const uniqueDigits = [...new Set(num.split(''))].length;
+      
+      // 检测不同数字组成
+      if (uniqueDigits === 2) {
+        detected.push({ name: '两个数字组成', rare: false });
+      } else if (uniqueDigits === 3) {
+        detected.push({ name: '三个数字组成', rare: false });
+      }
+      
+      // 检测其他规律
+      for (const p of patterns) {
+        if (p.regex.test(num)) {
+          // 避免重复添加
+          if (!detected.find(d => d.name === p.name)) {
+            detected.push({ name: p.name, rare: p.rare });
+          }
+        }
+      }
+      return detected;
+    }
+
+    // API 配置 - 部署 Cloudflare Workers 后填入 Workers URL
+    const API_BASE = ''; // 留空则使用相对路径 /api
+    
+    // 查询域名注册状态
+    async function checkDomainStatus(domain) {
+      // 自动添加 .xyz 后缀
+      if (!domain.includes('.')) {
+        domain = domain + '.xyz';
+      }
+      
+      try {
+        const url = API_BASE ? `${API_BASE}/api/check-domain` : '/api/check-domain';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain })
+        });
+        const data = await response.json();
+        return data.available;
+      } catch (error) {
+        console.error('查询失败:', error);
+        return true; // 查询失败时保守返回可注册
+      }
+    }
+
+    function parseInput(input) {
+      // 支持逗号、空格、换行分隔
+      // 支持格式：123456 或 123456.xyz
+      const numbers = input
+        .split(/[,\s\n]+/)
+        .map(s => s.trim())
+        .map(s => s.replace(/\.xyz$/i, '')) // 移除 .xyz 后缀
+        .filter(s => /^\d{6}$/.test(s));
+      return [...new Set(numbers)]; // 去重
+    }
+
+    async function searchDomains() {
+      const input = document.getElementById('domainInput').value;
+      const numbers = parseInput(input);
+      
+      if (numbers.length === 0) {
+        alert('请输入有效的6位数字号码');
+        return;
+      }
+
+      const searchBtn = document.getElementById('searchBtn');
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<span class="spinner"></span> 查询中...';
+
+      // 查询每个域名
+      const results = [];
+      for (const num of numbers) {
+        const isAvailable = await checkDomainStatus(num);
+        const patternTags = detectPatterns(num);
+        results.push({
+          number: num,
+          domain: `${num}.xyz`,
+          available: isAvailable,
+          patterns: patternTags
+        });
+      }
+
+      // 保存结果用于筛选和下载
+      currentResults = results;
+
+      // 统计
+      const available = results.filter(r => r.available).length;
+      const registered = results.filter(r => !r.available).length;
+
+      // 更新统计
+      document.getElementById('availableCount').textContent = available;
+      document.getElementById('registeredCount').textContent = registered;
+      document.getElementById('totalCount').textContent = results.length;
+      document.getElementById('statsBar').style.display = 'flex';
+
+      // 更新筛选标签
+      updateFilters(results);
+
+      // 渲染结果
+      renderResults(results);
+
+      // 保存到 localStorage
+      saveToStorage(results);
+
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = '<span>🔎</span> 批量查询';
+    }
+
+    function updateFilters(results) {
+      const filterTags = document.getElementById('filterTags');
+      const filterSection = document.getElementById('filterSection');
+      filterSection.style.display = 'block';
+
+      // 统计各规律数量
+      const patternCount = {};
+      for (const r of results) {
+        for (const p of r.patterns) {
+          patternCount[p.name] = (patternCount[p.name] || 0) + 1;
+        }
+      }
+
+      // 生成标签
+      const tags = Object.entries(patternCount)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `
+          <div class="filter-tag" onclick="filterByPattern('${name}')">
+            ${name}
+            <span class="count">${count}</span>
+          </div>
+        `).join('');
+
+      filterTags.innerHTML = `
+        <div class="filter-tag active" onclick="filterByPattern('')">
+          全部
+          <span class="count">${results.length}</span>
+        </div>
+        <div class="filter-tag" onclick="filterByStatus('available')">
+          ✅ 可注册
+          <span class="count">${results.filter(r => r.available).length}</span>
+        </div>
+        <div class="filter-tag" onclick="filterByStatus('registered')">
+          ❌ 已注册
+          <span class="count">${results.filter(r => !r.available).length}</span>
+        </div>
+        ${tags}
+      `;
+
+      document.getElementById('filterCount').textContent = results.length;
+      
+      // 显示下载按钮
+      const downloadBtn = document.getElementById('downloadBtn');
+      const availableCount = results.filter(r => r.available).length;
+      if (availableCount > 0) {
+        downloadBtn.style.display = 'inline-flex';
+        downloadBtn.innerHTML = `<span>📥</span> 下载可注册域名 (${availableCount})`;
+      } else {
+        downloadBtn.style.display = 'none';
+      }
+    }
+
+    let currentResults = [];
+
+    function filterByPattern(pattern) {
+      const cards = document.querySelectorAll('.domain-card');
+      cards.forEach(card => {
+        if (!pattern) {
+          card.style.display = '';
+        } else {
+          const tags = card.dataset.patterns || '';
+          card.style.display = tags.includes(pattern) ? '' : 'none';
+        }
+      });
+
+      // 更新选中状态
+      document.querySelectorAll('.filter-tag').forEach(tag => {
+        tag.classList.remove('active');
+        if (tag.textContent.includes(pattern) || (!pattern && tag.textContent.includes('全部'))) {
+          tag.classList.add('active');
+        }
+      });
+
+      // 更新计数
+      const visible = document.querySelectorAll('.domain-card[style=""], .domain-card:not([style*="display"])').length;
+      document.getElementById('filterCount').textContent = visible;
+    }
+
+    function filterByStatus(status) {
+      console.log('filterByStatus called:', status);
+      const cards = document.querySelectorAll('.domain-card');
+      console.log('Found cards:', cards.length);
+      
+      cards.forEach(card => {
+        const isAvailable = !card.classList.contains('registered');
+        console.log('Card:', card.textContent.substring(0, 20), 'isAvailable:', isAvailable, 'class:', card.className);
+        
+        if (status === 'available') {
+          card.style.display = isAvailable ? '' : 'none';
+        } else if (status === 'registered') {
+          card.style.display = !isAvailable ? '' : 'none';
+        } else {
+          card.style.display = '';
+        }
+      });
+
+      // 更新选中状态
+      document.querySelectorAll('.filter-tag').forEach(tag => {
+        tag.classList.remove('active');
+        if (tag.textContent.includes(status === 'available' ? '可注册' : status === 'registered' ? '已注册' : '全部')) {
+          tag.classList.add('active');
+        }
+      });
+
+      // 更新计数
+      const visible = Array.from(cards).filter(c => c.style.display !== 'none').length;
+      document.getElementById('filterCount').textContent = visible;
+    }
+
+    function downloadAvailable() {
+      const available = currentResults.filter(r => r.available).map(r => r.domain);
+      if (available.length === 0) {
+        alert('没有可注册的域名');
+        return;
+      }
+      
+      const content = available.join('\n');
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'available-domains.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function renderResults(results) {
+      const grid = document.getElementById('resultsGrid');
+      const resultsSection = document.getElementById('resultsSection');
+      const emptyState = document.getElementById('emptyState');
+
+      if (results.length === 0) {
+        resultsSection.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      resultsSection.style.display = 'block';
+      emptyState.style.display = 'none';
+
+      grid.innerHTML = results.map((r, i) => {
+        const patternStr = r.patterns.map(p => p.name).join(',');
+        const tagsHtml = r.patterns.map(p => `
+          <span class="domain-tag ${p.rare ? 'rare' : 'pattern'} ${p.name === 'AAA' || p.name === 'AABB' ? 'aaa' : ''}">
+            ${p.name}
+          </span>
+        `).join('');
+
+        return `
+          <div class="domain-card ${r.available ? '' : 'registered'}" data-patterns="${patternStr}" style="animation-delay: ${i * 0.02}s">
+            <div class="domain-number">
+              ${r.number}<span class="domain-suffix">.xyz</span>
+            </div>
+            <div class="domain-status ${r.available ? 'available' : 'registered'}">
+              ${r.available ? '✓ 可注册' : '✗ 已注册'}
+            </div>
+            <div class="domain-tags">
+              ${tagsHtml || '<span class="domain-tag pattern">普通号码</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearInput() {
+      document.getElementById('domainInput').value = '';
+      document.getElementById('statsBar').style.display = 'none';
+      document.getElementById('filterSection').style.display = 'none';
+      document.getElementById('resultsSection').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+      localStorage.removeItem('domainSearchResults');
+      currentResults = [];
+    }
+
+    // 回车提交
+    document.getElementById('domainInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        searchDomains();
+      }
+    });
+  </script>
+</body>
+</html>
