@@ -815,9 +815,10 @@
       searchBtn.disabled = true;
       searchBtn.innerHTML = '<span class="spinner"></span> 查询中...';
 
-      // 查询每个域名
+      // 查询每个域名（添加延迟避免被限流）
       const results = [];
-      for (const num of numbers) {
+      for (let i = 0; i < numbers.length; i++) {
+        const num = numbers[i];
         const isAvailable = await checkDomainStatus(num);
         const patternTags = detectPatterns(num);
         results.push({
@@ -826,6 +827,10 @@
           available: isAvailable,
           patterns: patternTags
         });
+        // 每次查询后等待 1 秒，避免被 WHOIS 服务限流
+        if (i < numbers.length - 1) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
       }
 
       // 保存结果用于筛选和下载
